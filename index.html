@@ -19,28 +19,15 @@
         }
         .loader {
             border: 4px solid rgba(255, 255, 255, 0.1);
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             border-radius: 50%;
             border-left-color: #38bdf8;
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        h2 {
-            font-size: 16px;
-            font-weight: 500;
-            margin: 0 0 8px 0;
-            letter-spacing: 0.5px;
-        }
-        p {
-            font-size: 13px;
-            color: #94a3b8;
-            margin: 0;
-        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        h2 { font-size: 16px; font-weight: 500; margin: 0 0 8px 0; }
+        p { font-size: 13px; color: #94a3b8; margin: 0; }
     </style>
 </head>
 <body>
@@ -49,25 +36,32 @@
     <p>Mohon tunggu sebentar...</p>
 
     <script>
-        // Ambil slug dari URL (contoh: domain.com/nO5rhR)
-        const pathSegments = window.location.pathname.split("/").filter(Boolean);
-        const slug = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : "";
+        async function resolveLink() {
+            const pathSegments = window.location.pathname.split("/").filter(Boolean);
+            const slug = pathSegments.length > 0 ? pathSegments[pathSegments.length - 1] : "";
 
-        setTimeout(() => {
-            if (slug && slug !== "index.html" && slug !== "admin.html") {
-                // Cek data tujuan di localStorage browser
-                const savedData = localStorage.getItem("link_" + slug);
-                if (savedData) {
-                    window.location.replace(savedData);
-                } else {
-                    // Kalau link tidak ditemukan/expired, arahkan ke Telegram utama
-                    window.location.replace("https://t.me/koleksikitaV1");
-                }
-            } else {
-                // Jika dibuka tanpa slug (domain utama polos), arahkan ke Telegram
+            if (!slug || slug === "index.html" || slug === "admin.html") {
+                window.location.replace("https://t.me/koleksikitaV1");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/resolve?slug=${slug}`);
+                const data = await response.json();
+
+                setTimeout(() => {
+                    if (data && data.target_url) {
+                        window.location.replace(data.target_url);
+                    } else {
+                        window.location.replace("https://t.me/koleksikitaV1");
+                    }
+                }, 1500);
+            } catch (err) {
                 window.location.replace("https://t.me/koleksikitaV1");
             }
-        }, 1500); // Jeda 1.5 detik agar natural
+        }
+
+        resolveLink();
     </script>
 </body>
 </html>
